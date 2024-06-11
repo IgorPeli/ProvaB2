@@ -35,5 +35,5 @@ model Comment {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+  url      = "file:./dev.db" // Coloque aqui o caminho do seu banco de dados SQLite
 }

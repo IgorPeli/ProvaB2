@@ -7,16 +7,27 @@ class AuthController {
 
     async signUp(req: Request, res: Response): Promise<Response> {
         const { name, email, password } = req.body;
-        if(!name || !email || !password) return res.status(400)
-            .json({error: "Certifique-se de que está enviando os campos email, name e password"});
- 
+        
+        // Verifica se todos os campos estão presentes
+        if (!name || !email || !password) {
+            return res.status(400).json({ error: "Certifique-se de que está enviando os campos email, name e password" });
+        }
+    
         try {
-            const hashedPass = await hashPass(password)
+            // Criptografa a senha
+            const hashedPass = await hashPass(password);
+            
+            // Cria o usuário no banco de dados
             const user = await AuthService.signUp(name, email, hashedPass);
- 
-            return res.status(200).json({user: {email: user.email, name: user.name}});
-        } catch (_e) {
-            return res.status(400).json({erro: "Um erro ocorreu. Cheque sua combinação de email, name e password"});
+            
+            // Retorna sucesso com os detalhes do usuário e uma mensagem
+            return res.status(200).json({ 
+                message: "Registro bem-sucedido. Bem-vindo!", 
+                user: { email: user.email, name: user.name } 
+            });
+        } catch (error) {
+            console.error("Erro ao criar o usuário:", error);
+            throw new Error("Um erro ocorreu ao criar o usuário. Por favor, tente novamente.");
         }
     }
     async signIn(req: Request, res: Response) {
