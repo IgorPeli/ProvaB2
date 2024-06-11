@@ -6,7 +6,7 @@ import authMiddleware from "../middleware/authMiddleware";
 
 const AuthRouter = Router();
 
-AuthRouter.post("/api/auth/signin", authMiddleware ,AuthController.signIn);
+AuthRouter.post("/api/auth/signin", AuthController.signIn);
 AuthRouter.post("/api/auth/signup", AuthController.signUp);
 
 // Passa pelo middleware antes de acessar.
