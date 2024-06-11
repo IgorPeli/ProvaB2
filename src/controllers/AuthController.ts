@@ -1,37 +1,24 @@
-// src/controllers/AuthController.ts
 import { Request, Response } from "express";
-import AuthService from "../services/AuthService";
+import AuthService, { hashPass } from "../services/AuthService";
 import { generateHash } from "../utils/BcryptUtils";
 
 class AuthController {
     constructor() {}
 
-    async signUp(req: Request, res: Response) {
-        const { email, name, password } = req.body;
-
-        if (!email || !name || !password) {
-            res.status(400).json({ status: "error", message: "Falta parâmetros" });
-            return;
-        }
-
-        const hashPassword = await generateHash(password);
-        if (!hashPassword) {
-            res.status(500).json({ status: "error", message: "Erro ao criptografar senha ..." });
-            return;
-        }
-
+    async signUp(req: Request, res: Response): Promise<Response> {
+        const { name, email, password } = req.body;
+        if(!name || !email || !password) return res.status(400)
+            .json({error: "Certifique-se de que está enviando os campos email, name e password"});
+ 
         try {
-            const newUser = await AuthService.signUp({ name, email, password: hashPassword });
-            res.status(201).json({ status: "ok", newUser });
-        } catch (error) {
-            if (error instanceof Error) {
-                res.status(500).json({ status: "error", message: error.message });
-            } else {
-                res.status(500).json({ status: "error", message: "Erro desconhecido" });
-            }
+            const hashedPass = await hashPass(password)
+            const user = await AuthService.signUp(name, email, hashedPass);
+ 
+            return res.status(200).json({user: {email: user.email, name: user.name}});
+        } catch (_e) {
+            return res.status(400).json({erro: "Um erro ocorreu. Cheque sua combinação de email, name e password"});
         }
     }
-
     async signIn(req: Request, res: Response) {
         const { email, password } = req.body;
 
@@ -55,11 +42,6 @@ class AuthController {
                 res.status(500).json({ status: "error", message: "Erro desconhecido" });
             }
         }
-    }
-
-    async signOut(req: Request, res: Response) {
-        // A implementação de signOut depende de como você deseja gerenciar a sessão/tokens
-        res.json({ status: "ok", message: "Logout realizado com sucesso" });
     }
 }
 

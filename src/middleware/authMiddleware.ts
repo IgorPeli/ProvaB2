@@ -1,22 +1,20 @@
 import { Request, Response, NextFunction } from "express";
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import { Decoded } from "../types/decoded";
+import { verifyJwt } from "../services/AuthService";
 
-
-
-export const authenticateJWT = async (req: Request, res: Response, next: NextFunction) => {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader) {
-        return res.status(401).json({ error: "Token não fornecido" });
-    }
-
-    const token = authHeader.split(' ')[1];
-
+const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const decoded = jwt.verify(token, 'sua-chave-secreta') as JwtPayload;
-        req.user = decoded;
-        next();
-    } catch (error) {
-        return res.status(403).json({ error: "Token inválido" });
+       const reqToken = req.headers.authorization;
+       if (!reqToken){
+           return res.status(401).json({error: "Not authenticated"});
+       }
+       const [_, token] = reqToken.split(" ");
+       const decodedToken = verifyJwt(token);
+       req.user= (decodedToken as Decoded);
+       return next()
+    } catch(e)  {
+        console.log(e)
     }
-};
+}
+
+export default authMiddleware;
